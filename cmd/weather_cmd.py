@@ -2,7 +2,7 @@ import datetime
 
 import requests
 
-from cmd import ICmd
+from cmd.cmd import ICmd
 from tool.geo_weather import city_matcher
 
 gaode_api_url = 'https://restapi.amap.com/v3/weather/weatherInfo?key=035a0a19feb20a64b3c9d6d8c8c032cf&city={}' \
