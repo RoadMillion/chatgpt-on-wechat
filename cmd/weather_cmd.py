@@ -35,12 +35,20 @@ def get_weather(city_code):
                 city = response['city']
                 casts = response['casts']
                 for index, cast in enumerate(casts):
-                    date_str = '今天' if index == 0 else date_format(cast["date"])
+                    date_str = ''
+                    if index == 0:
+                        date_str = '今天'
+                    elif index == 1:
+                        date_str = '明天'
+                    elif index == 2:
+                        date_str = '后天'
+                    elif index == 3:
+                        date_str = '大后天'
                     messages.append('{} 白天{}，夜晚{}，白天温度 {}°，夜间温度 {}°，白天{}风 {} 级'
                                     .format(date_str,
                                             cast['dayweather'], cast['nightweather'], cast['daytemp'],
                                             cast['nighttemp'], cast['daywind'], cast['daypower']))
-                response = city + '\n'.join(messages)
+                response = city + '\n\n'.join(messages)
             else:
                 response = None
         return response

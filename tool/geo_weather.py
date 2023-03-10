@@ -5,7 +5,7 @@ import ahocorasick_rs
 from ahocorasick_rs import MATCHKIND_LEFTMOST_LONGEST
 import time
 
-gaoe_file_path = '../files/gaode_citycode_20210406.xlsx'
+gaoe_file_path = 'files/gaode_citycode_20210406.xlsx'
 # 构造一个计时器
 start_time = time.time()
 
