@@ -54,6 +54,8 @@ class CityMatcher:
         city = len(results) > 0 and results[0] or None
         if city:
             return data_dict[city]
+        else:
+            return '310100'
 
 
 city_matcher = CityMatcher()
