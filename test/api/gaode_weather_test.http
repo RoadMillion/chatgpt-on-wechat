@@ -1,0 +1,4 @@
+GET https://restapi.amap.com/v3/weather/weatherInfo?key=035a0a19feb20a64b3c9d6d8c8c032cf&city=310000&extensions=all
+Accept: application/json
+
+###

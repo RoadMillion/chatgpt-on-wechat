@@ -19,9 +19,8 @@ def load_config():
     logger.info("[INIT] load config: {}".format(config))
 
 
-
 def get_root():
-    return os.path.dirname(os.path.abspath( __file__ ))
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 def read_file(path):
