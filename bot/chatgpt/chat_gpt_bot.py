@@ -16,7 +16,6 @@ else:
     user_session = dict()
 ai_prompt_setting = conf().get('gpt_ai_prompt_setting')
 
-is_drawing = False
 
 
 # OpenAI对话模型API (可用)
@@ -26,6 +25,7 @@ class ChatGPTBot(Bot):
         proxy = conf().get('proxy')
         if proxy:
             openai.proxy = proxy
+        self.is_drawing = False
 
     def reply(self, query, context=None):
         # acquire reply content
@@ -57,24 +57,27 @@ class ChatGPTBot(Bot):
             return reply_content["content"]
 
         elif context.get('type', None) == 'IMAGE_CREATE':
-            global is_drawing
-            if is_drawing:
+            if self.is_drawing:
                 return '等我画完喵~'
-            is_drawing = True
-            from_user_id = context.get('from_user_id', 'ai-drawing')
-            query = ai_prompt_setting + query
-            session_query = Session.build_session_query(query, from_user_id)
-            prompt_reply = self.reply_text(session_query, from_user_id, 0)
-            if prompt_reply['completion_tokens'] > 0:
-                prompt = prompt_reply['content']
-                logger.info("[OPEN_AI] drawing prompt={}".format(prompt))
-                try:
+            try:
+                self.is_drawing = True
+                logger.info("更新画画状态为不可用")
+                from_user_id = context.get('from_user_id', 'ai-drawing')
+                query = ai_prompt_setting + query
+                session_query = Session.build_session_query(query, from_user_id)
+                prompt_reply = self.reply_text(session_query, from_user_id, 0)
+                if prompt_reply['completion_tokens'] > 0:
+                    prompt = prompt_reply['content']
+                    logger.info("[OPEN_AI] drawing prompt={}".format(prompt))
                     image_url = call_predict(prompt)
                     if image_url:
                         return image_url
-                except Exception as e:
-                    traceback.print_exc()
-            is_drawing = False
+            except Exception as e:
+                traceback.print_exc()
+            finally:
+                self.is_drawing = False
+                logger.info("更新画画状态为可用")
+            return '有问题啊'
             # return self.create_img(query, 0)
 
     def reply_text(self, query, user_id, retry_count=0) -> dict:

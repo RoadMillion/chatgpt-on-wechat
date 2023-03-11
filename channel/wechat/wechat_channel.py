@@ -3,6 +3,8 @@
 """
 wechat channel
 """
+import traceback
+
 import itchat
 import json
 from itchat.content import *
@@ -15,6 +17,7 @@ from config import conf
 import requests
 import io
 
+busy_png_path = '../../files/busy.png'
 thread_pool = ThreadPoolExecutor(max_workers=8)
 
 
@@ -44,8 +47,8 @@ class WechatChannel(Channel):
     def handle(self, msg):
         logger.debug("[WX]receive msg: " + json.dumps(msg, ensure_ascii=False))
         from_user_id = msg['FromUserName']
-        to_user_id = msg['ToUserName']              # 接收人id
-        other_user_id = msg['User']['UserName']     # 对手方id
+        to_user_id = msg['ToUserName']  # 接收人id
+        other_user_id = msg['User']['UserName']  # 对手方id
         content = msg['Text']
         match_prefix = self.check_prefix(content, conf().get('single_chat_prefix'))
         if "」\n- - - - - - - - - - - - - - -" in content:
@@ -77,7 +80,6 @@ class WechatChannel(Channel):
             else:
                 thread_pool.submit(self._do_send, content, to_user_id)
 
-
     def handle_group(self, msg):
         logger.debug("[WX]receive group msg: " + json.dumps(msg, ensure_ascii=False))
         group_name = msg['User'].get('NickName', None)
@@ -96,9 +98,13 @@ class WechatChannel(Channel):
             logger.debug("[WX]reference query skipped")
             return ""
         config = conf()
-        match_prefix = (msg['IsAt'] and not config.get("group_at_off", False)) or self.check_prefix(origin_content, config.get('group_chat_prefix')) \
+        match_prefix = (msg['IsAt'] and not config.get("group_at_off", False)) or self.check_prefix(origin_content,
+                                                                                                    config.get(
+                                                                                                        'group_chat_prefix')) \
                        or self.check_contain(origin_content, config.get('group_chat_keyword'))
-        if ('ALL_GROUP' in config.get('group_name_white_list') or group_name in config.get('group_name_white_list') or self.check_contain(group_name, config.get('group_name_keyword_white_list'))) and match_prefix:
+        if ('ALL_GROUP' in config.get('group_name_white_list') or group_name in config.get(
+                'group_name_white_list') or self.check_contain(group_name, config.get(
+                'group_name_keyword_white_list'))) and match_prefix:
             img_match_prefix = self.check_prefix(content, conf().get('image_create_prefix'))
             if img_match_prefix:
                 content = content.split(img_match_prefix, 1)[1].strip()
@@ -131,42 +137,49 @@ class WechatChannel(Channel):
             img_url = super().build_reply_content(query, context)
             if not img_url:
                 return
+            try:
+                pic_res = requests.get(img_url, stream=True, auth=HTTPBasicAuth('abc', 'abc'))
+                image_storage = io.BytesIO()
+                for block in pic_res.iter_content(1024):
+                    image_storage.write(block)
+                image_storage.seek(0)
+            except Exception as e:
+                traceback.print_exc()
+                # read local file busy_png_path when network error
+                with open('busy.png', 'rb') as f:
+                    image_storage = io.BytesIO(f.read())
+                    image_storage.seek(0)
 
-            # 图片下载
-            pic_res = requests.get(img_url, stream=True, auth=HTTPBasicAuth('abc', 'abc'))
-            image_storage = io.BytesIO()
-            for block in pic_res.iter_content(1024):
-                image_storage.write(block)
-            image_storage.seek(0)
 
-            # 图片发送
             logger.info('[WX] sendImage, receiver={}'.format(reply_user_id))
             itchat.send_image(image_storage, reply_user_id)
+
         except Exception as e:
             logger.exception(e)
 
-    def _do_send_group(self, query, msg):
-        if not query:
-            return
-        context = dict()
-        context['from_user_id'] = msg['ActualUserName']
-        reply_text = super().build_reply_content(query, context)
-        if reply_text:
-            reply_text = '@' + msg['ActualNickName'] + ' ' + reply_text.strip()
-            self.send(conf().get("group_chat_reply_prefix", "") + reply_text, msg['User']['UserName'])
+
+def _do_send_group(self, query, msg):
+    if not query:
+        return
+    context = dict()
+    context['from_user_id'] = msg['ActualUserName']
+    reply_text = super().build_reply_content(query, context)
+    if reply_text:
+        reply_text = '@' + msg['ActualNickName'] + ' ' + reply_text.strip()
+        self.send(conf().get("group_chat_reply_prefix", "") + reply_text, msg['User']['UserName'])
 
 
-    def check_prefix(self, content, prefix_list):
-        for prefix in prefix_list:
-            if content.startswith(prefix):
-                return prefix
+def check_prefix(self, content, prefix_list):
+    for prefix in prefix_list:
+        if content.startswith(prefix):
+            return prefix
+    return None
+
+
+def check_contain(self, content, keyword_list):
+    if not keyword_list:
         return None
-
-
-    def check_contain(self, content, keyword_list):
-        if not keyword_list:
-            return None
-        for ky in keyword_list:
-            if content.find(ky) != -1:
-                return True
-        return None
+    for ky in keyword_list:
+        if content.find(ky) != -1:
+            return True
+    return None

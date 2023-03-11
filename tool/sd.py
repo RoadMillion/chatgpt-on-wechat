@@ -180,7 +180,6 @@ def query_progress(task_id, preview_id):
     id_task = 'task({})'.format(task_id)
     body['id_task'] = id_task
     body['id_live_preview'] = preview_id
-    print(json.dumps(body, indent=4))
     response = requests.post(pre_progress_api, json=body)
     print(response.text)
     return response.json()
@@ -213,7 +212,6 @@ def call_predict(negative_prompt, positive_prompt=''):
     data[1] = fixed_negative_prompt + negative_prompt
     data[2] = fixed_positive_prompt + positive_prompt
     response = requests.post(call_api, json=body)
-    print(json.dumps(response.json(), indent=4))
     response_data = response.json()['data']
     paths = response_data[0]
     grid_path = paths[0]['name']
