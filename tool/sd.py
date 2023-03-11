@@ -18,8 +18,8 @@ call_api = conf().get('sd_remote_host') + '/run/predict/'
 frp_file_path = 'frp_file_host'
 progress_body = {"id_task": None,
                  "id_live_preview": 0}
-fixed_negative_prompt = "(extremely detailed CG 8k wallpaper), (an extremely delicate and beautiful), (masterpiece), (best quality:1.0), (ultra highres:1.0),best quality,(ultra-detailed),1girl, beautiful,wading, medium breasts, "
-fixed_positive_prompt = "nsfw,(worst quality:2), (low quality:2), (normal quality:2), (mutated hands and fingers:1.5 ), (long body :1.3), (mutation, poorly drawn :1.2) , black-white, bad anatomy, liquid body, liquid tongue, disfigured, malformed, mutated, anatomical nonsense, text font ui, error, malformed hands, long neck, blurred, lowers, lowres, bad anatomy, bad proportions, bad shadow, uncoordinated body, unnatural body, fused breasts, bad breasts, huge breasts, poorly drawn breasts, extra breasts, liquid breasts, heavy breasts, missing breasts, huge haunch, huge thighs, huge calf, bad hands, fused hand, missing hand,"
+fixed_negative_prompt = "(extremely detailed), (an extremely delicate and beautiful), (masterpiece), (best quality:1.0), (ultra highres:1.0),best quality,(ultra-detailed),1girl, beautiful,wading, medium breasts, "
+fixed_positive_prompt = "(nsfw:2),(worst quality:2), (low quality:2), (normal quality:2), nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, bad feet,"
 predict_body = {
     "fn_index": sd_fn_index,
     "data": [
