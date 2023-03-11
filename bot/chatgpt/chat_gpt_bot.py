@@ -60,9 +60,8 @@ class ChatGPTBot(Bot):
             if is_drawing:
                 return '等我画完喵~'
             is_drawing = True
-            from_user_id = context['from_user_id']
-            new_query = Session.build_session_query(query, from_user_id)
-            prompt_reply = self.reply_text(ai_prompt_setting + new_query, from_user_id, 0)
+            from_user_id = context.get('from_user_id', 'ai-drawing')
+            prompt_reply = self.reply_text(ai_prompt_setting + query, from_user_id, 0)
             if prompt_reply['completion_tokens'] > 0:
                 prompt = prompt_reply['content']
                 logger.info("[OPEN_AI] drawing prompt={}".format(prompt))
