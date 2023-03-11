@@ -1,4 +1,5 @@
 # encoding:utf-8
+import traceback
 
 from bot.bot import Bot
 from config import conf
@@ -7,11 +8,15 @@ from common.expired_dict import ExpiredDict
 import openai
 import time
 from cmd.weather_cmd import weather_cmd
+from tool.sd import call_predict
+
 if conf().get('expires_in_seconds'):
     user_session = ExpiredDict(conf().get('expires_in_seconds'))
 else:
     user_session = dict()
+ai_prompt_setting = conf().get('gpt_ai_prompt_setting')
 
+is_drawing = False
 
 # OpenAI对话模型API (可用)
 class ChatGPTBot(Bot):
@@ -51,7 +56,24 @@ class ChatGPTBot(Bot):
             return reply_content["content"]
 
         elif context.get('type', None) == 'IMAGE_CREATE':
-            return self.create_img(query, 0)
+            global is_drawing
+            if is_drawing:
+                return '等我画完喵~'
+            is_drawing = True
+            from_user_id = context['from_user_id']
+            new_query = Session.build_session_query(query, from_user_id)
+            prompt_reply = self.reply_text(ai_prompt_setting + new_query, from_user_id, 0)
+            if prompt_reply['completion_tokens'] > 0:
+                prompt = prompt_reply['content']
+                logger.info("[OPEN_AI] drawing prompt={}".format(prompt))
+                try:
+                    image_url = call_predict(prompt)
+                    if image_url:
+                        return image_url
+                except Exception as e:
+                    traceback.print_exc()
+            is_drawing = False
+            # return self.create_img(query, 0)
 
     def reply_text(self, query, user_id, retry_count=0) -> dict:
         '''

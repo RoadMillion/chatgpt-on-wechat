@@ -29,4 +29,6 @@ def read_file(path):
 
 
 def conf():
+    if not config:
+        load_config()
     return config

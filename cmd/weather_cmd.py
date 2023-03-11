@@ -17,6 +17,8 @@ def date_format(date_str):
 class WeatherCmd(ICmd):
 
     def try_intercept(self, text, context=None):
+        if '画' in text:
+            return None
         city_code = city_matcher.match(text)
         if city_code:
             return get_weather(city_code)

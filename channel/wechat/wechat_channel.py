@@ -6,6 +6,8 @@ wechat channel
 import itchat
 import json
 from itchat.content import *
+from requests.auth import HTTPBasicAuth
+
 from channel.channel import Channel
 from concurrent.futures import ThreadPoolExecutor
 from common.log import logger
@@ -131,7 +133,7 @@ class WechatChannel(Channel):
                 return
 
             # 图片下载
-            pic_res = requests.get(img_url, stream=True)
+            pic_res = requests.get(img_url, stream=True, auth=HTTPBasicAuth('abc', 'abc'))
             image_storage = io.BytesIO()
             for block in pic_res.iter_content(1024):
                 image_storage.write(block)
