@@ -18,6 +18,7 @@ ai_prompt_setting = conf().get('gpt_ai_prompt_setting')
 
 is_drawing = False
 
+
 # OpenAI对话模型API (可用)
 class ChatGPTBot(Bot):
     def __init__(self):
@@ -61,7 +62,9 @@ class ChatGPTBot(Bot):
                 return '等我画完喵~'
             is_drawing = True
             from_user_id = context.get('from_user_id', 'ai-drawing')
-            prompt_reply = self.reply_text(ai_prompt_setting + query, from_user_id, 0)
+            query = ai_prompt_setting + query
+            session_query = Session.build_session_query(query, from_user_id)
+            prompt_reply = self.reply_text(session_query, from_user_id, 0)
             if prompt_reply['completion_tokens'] > 0:
                 prompt = prompt_reply['content']
                 logger.info("[OPEN_AI] drawing prompt={}".format(prompt))
